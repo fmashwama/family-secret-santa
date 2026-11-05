@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mashwama Secret Santa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: a single centred gift tag on a deep pine ground; the reveal unfolds inside the tag */
+:root {
+  --bg: #f3efe6;
+  --card: #fffdf8;
+  --ink: #1f2a22;
+  --muted: #5d6a60;
+  --pine: #1d4d36;
+  --berry: #b3263a;
+  --gold: #b8892b;
+  --line: #ded6c4;
+  --display: "Fraunces", Georgia, serif;
+  --body: "Nunito Sans", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1d16; --card: #172a20; --ink: #f1ece0; --muted: #a8b5aa;
+  --pine: #7fc3a0; --berry: #ef6f7f; --gold: #e0b55a; --line: #2c4436; color-scheme: dark;
+}}
+:root[data-theme="dark"] {
+  --bg: #0f1d16; --card: #172a20; --ink: #f1ece0; --muted: #a8b5aa;
+  --pine: #7fc3a0; --berry: #ef6f7f; --gold: #e0b55a; --line: #2c4436; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 48px;
+  display: grid; place-items: start center;
+}
+.tag {
+  width: 100%; max-width: 420px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 18px;
+  padding: 40px 28px 32px; text-align: center; position: relative;
+  box-shadow: 0 12px 40px -18px rgba(0,0,0,.35);
+}
+.tag::before { /* the tag's string hole */
+  content: ""; position: absolute; top: 14px; left: 50%; translate: -50% 0;
+  width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--gold); background: var(--bg);
+}
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin: 8px 0 6px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 8vw, 40px); line-height: 1.05; margin: 0 0 12px; color: var(--pine); text-wrap: balance; }
+.lede { color: var(--muted); margin: 0 0 28px; line-height: 1.5; }
+form { display: flex; flex-direction: column; gap: 12px; }
+label { font-size: 13px; font-weight: 700; text-align: left; color: var(--muted); }
+input {
+  font: inherit; font-size: 18px; padding: 14px 16px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); width: 100%;
+}
+input:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+button {
+  font: inherit; font-weight: 700; font-size: 17px; padding: 14px 20px; border: 0; border-radius: 10px;
+  background: var(--berry); color: #fff; cursor: pointer; touch-action: manipulation;
+}
+button:hover { filter: brightness(1.08); }
+#result { margin-top: 26px; min-height: 92px; }
+.reveal { border-top: 1px dashed var(--line); padding-top: 22px; }
+.reveal p { margin: 0; color: var(--muted); }
+.reveal strong { display: block; font-family: var(--display); font-weight: 600; font-size: 34px; color: var(--berry); margin-top: 6px; overflow-wrap: anywhere; }
+.reveal.err p { color: var(--berry); }
+.foot { margin-top: 18px; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .reveal strong { animation: pop .45s ease-out; }
+  @keyframes pop { from { transform: scale(.85); opacity: .3; } to { transform: none; opacity: 1; } }
+}
+</style>
+</head>
+<body>
+
+<main class="tag">
+  <p class="eyebrow">Mashwama family · Christmas 2026</p>
+  <h1>Secret Santa</h1>
+  <p class="lede">Sign in with the username and password you were given to see who you're buying for. Adults and kids each have their own draw.</p>
+  <form id="f">
+    <label for="user">Username</label>
+    <input type="text" id="user" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false" required>
+    <label for="pass">Password</label>
+    <input type="password" id="pass" autocomplete="current-password" required>
+    <button type="submit">Reveal my person</button>
+  </form>
+  <div id="result" aria-live="polite"></div>
+  <p class="foot">Keep it to yourself until gift day.</p>
+</main>
+
+<script>
+  var lookup = {"bf904072e87a875d740faa9af65d9369771cb994959475ba4b8e1f08cb906613": "VGVtbm90Zm8=", "b06057e1335eaae6885f92c41c7363342ceb894cedd9e3c0ac8f0fb56b0874ee": "RmFuZWxl", "1eb6e0b50d59d8312c5eaba90cb564ca1c8896714806b4b83997b67cb50681a5": "UGV0cm9zIE1hc2h3YW1h", "a81f5ada00d1e03ac9c3651027fe06fae50bc552df54a4bdecf40a86108baea8": "SmFidSBNYXNod2FtYQ==", "4e562d9c6ddd4b45185ebb2a9d262b22651cf4f8b3e62a7c3f18055ec498f329": "SFJI", "e44567bd17985a4ec5c147b6b6de269c31f134a7a882c3610943207de05a12bd": "VGE=", "1d8019800d81b3eb09f7cf9ae63b2bda7a731f47bb97ee2f00e5159dc667ae28": "U2l0c2VtYmlzbw==", "c900b622716e98f1b38b95cb4213ca1f507b49c6d26454e2db51709e85bebcca": "TmphYnVsbw==", "444da8df62cd340e7537c1f32b27e09dfe94f0ec403c10db18aa201bb70673d3": "TmhsYXZ1", "1262bc98bf722cf36ffa509f74be14a103a278da0449d5b0d01692ef59cd995a": "QW5kaWxl", "9067508c29f1724de61c59307142521258becbc2a29ed420c64fa9c5e78830d0": "VGVt", "e5683f0c15cb1ea7de0bf8bd8033119e1e532464f7b9751e1698e8961b09d4fe": "Qm9uZ2lzd2E="};
+  function decode(s) {
+    var bin = atob(s), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  async function sha256(text) {
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  document.getElementById('f').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var user = document.getElementById('user').value.trim().toLowerCase();
+    var pass = document.getElementById('pass').value.trim().toLowerCase().replace(/\s+/g, '');
+    var code = await sha256(user + ':' + pass);
+    var out = document.getElementById('result');
+    out.innerHTML = '';
+    var box = document.createElement('div');
+    box.className = 'reveal';
+    var p = document.createElement('p');
+    if (lookup[code]) {
+      p.textContent = "You're buying a gift for";
+      var s = document.createElement('strong');
+      s.textContent = decode(lookup[code]);
+      box.append(p, s);
+    } else {
+      box.classList.add('err');
+      p.textContent = "That username and password don't match. Check the spelling and try again.";
+      box.append(p);
+    }
+    out.append(box);
+  });
+</script>
+</body>
+</html>
